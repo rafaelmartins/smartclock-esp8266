@@ -47,7 +47,12 @@ shift_register_init()
     io_conf.pin_bit_mask = BIT(DATA_PIN) | BIT(LATCH_PIN) | BIT(CLOCK_PIN);
     io_conf.pull_down_en = 0;
     io_conf.pull_up_en = 1;
-    return gpio_config(&io_conf);
+
+    esp_err_t rv = gpio_config(&io_conf);
+    if (rv != ESP_OK)
+        return rv;
+
+    return shift_register_send();
 }
 
 

@@ -33,6 +33,9 @@ void app_main(void)
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
 
+    shift_register_init();
+    gpio_set_level(OUT_PIN, 1);
+
     i2c_init();
     while (ssd1306_init() != 0) {
         printf("%s: failed to init SSD1306 lcd\n", __func__);
@@ -54,7 +57,6 @@ void app_main(void)
         shift_register_set_display_number(cnt++ % 10);
         shift_register_set_led(cnt % 2);
         shift_register_send();
-        gpio_set_level(OUT_PIN, cnt % 2);
     }
 
     i2c_cleanup();
