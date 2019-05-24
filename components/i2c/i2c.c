@@ -37,6 +37,13 @@ i2c_init()
 
 
 esp_err_t
+i2c_cleanup()
+{
+    return i2c_driver_delete(I2C_NUM_0);
+}
+
+
+esp_err_t
 i2c_write_data(int8_t slave_address, uint8_t reg_address, uint8_t *data, size_t data_len)
 {
     i2c_cmd_handle_t cmd_handle = i2c_cmd_link_create();

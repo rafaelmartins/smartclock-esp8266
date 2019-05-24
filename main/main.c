@@ -50,4 +50,6 @@ void app_main(void)
         vTaskDelay(1000 / portTICK_RATE_MS);
         gpio_set_level(OUT_PIN, cnt % 2);
     }
+
+    i2c_cleanup();
 }
