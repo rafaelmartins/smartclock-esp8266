@@ -12,6 +12,7 @@
 // https://www.amazon.de/gp/product/B01L9GC470/
 
 #include <stdbool.h>
+#include <string.h>
 #include <esp_err.h>
 
 #include <i2c/i2c.h>
@@ -46,7 +47,6 @@ static const uint8_t refresh_cmds[] = {
     0xFF,
 };
 
-static uint8_t empty_fb_chunk[16] = {0};
 static uint8_t fb[1024] = {0};
 
 
@@ -59,7 +59,11 @@ ssd1306_init()
             return rv;
     }
 
-    return ssd1306_clear();
+    esp_err_t rv = ssd1306_clear();
+    if (rv != ESP_OK)
+        return rv;
+
+    return ssd1306_refresh();
 }
 
 
@@ -70,8 +74,8 @@ ssd1306_command(uint8_t cmd)
 }
 
 
-static esp_err_t
-ssd1306_refresh_internal(bool clear)
+esp_err_t
+ssd1306_refresh()
 {
     for (size_t i = 0; refresh_cmds[i] != 0xFF; i++) {
         esp_err_t rv = ssd1306_command(refresh_cmds[i]);
@@ -80,7 +84,7 @@ ssd1306_refresh_internal(bool clear)
     }
 
     for (size_t i = 0; i < 1024; i += 16) {
-        esp_err_t rv = i2c_write_data(0x3C, 0x40, clear ? empty_fb_chunk : &fb[i], 16);
+        esp_err_t rv = i2c_write_data(0x3C, 0x40, &fb[i], 16);
         if (rv != ESP_OK)
             return rv;
     }
@@ -90,16 +94,10 @@ ssd1306_refresh_internal(bool clear)
 
 
 esp_err_t
-ssd1306_refresh()
-{
-    return ssd1306_refresh_internal(false);
-}
-
-
-esp_err_t
 ssd1306_clear()
 {
-    return ssd1306_refresh_internal(true);
+    memset(fb, 0, 1024);
+    return ESP_OK;
 }
 
 

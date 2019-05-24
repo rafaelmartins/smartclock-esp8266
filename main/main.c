@@ -42,18 +42,17 @@ void app_main(void)
         vTaskDelay(1000 / portTICK_RATE_MS);
     }
 
-    const char *str = "Hello, World!";
-    size_t width = ssd1306_get_string_width(str);
-
-    ssd1306_add_string((64 - FONT_HEIGHT) / 2, (128 - width) / 2, str);
-    ssd1306_refresh();
-
-    shift_register_init();
-
+    const char *str[] = {"Hello, World!", "bola"};
     int cnt = 0;
     while (1) {
         ESP_LOGI("foo", "cnt: %d", cnt);
         vTaskDelay(1000 / portTICK_RATE_MS);
+
+        size_t width = ssd1306_get_string_width(str[cnt % 2]);
+        ssd1306_clear();
+        ssd1306_add_string((128 - width) / 2, (64 - FONT_HEIGHT) / 2, str[cnt % 2]);
+        ssd1306_refresh();
+
         shift_register_set_display_number(cnt++ % 10);
         shift_register_set_led(cnt % 2);
         shift_register_send();
