@@ -16,6 +16,7 @@
 #include <i2c/i2c.h>
 #include <ssd1306/ssd1306.h>
 #include <ssd1306/font.h>
+#include <shift-register/shift-register.h>
 
 #define OUT_PIN 5
 
@@ -44,10 +45,15 @@ void app_main(void)
     ssd1306_add_string((64 - FONT_HEIGHT) / 2, (128 - width) / 2, str);
     ssd1306_refresh();
 
+    shift_register_init();
+
     int cnt = 0;
     while (1) {
-        ESP_LOGI("foo", "cnt: %d", cnt++);
+        ESP_LOGI("foo", "cnt: %d", cnt);
         vTaskDelay(1000 / portTICK_RATE_MS);
+        shift_register_set_display_number(cnt++ % 10);
+        shift_register_set_led(cnt % 2);
+        shift_register_send();
         gpio_set_level(OUT_PIN, cnt % 2);
     }
 
