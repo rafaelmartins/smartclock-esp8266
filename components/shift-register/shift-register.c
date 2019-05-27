@@ -10,11 +10,6 @@
 // the 7 less significant bits are used to run a 7 segment display number.
 // the most significant bit is used as a simple output to control a led.
 
-// FIXME: get pins from menuconfig
-#define DATA_PIN 4
-#define LATCH_PIN 13
-#define CLOCK_PIN 15
-
 #include <stdlib.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -44,7 +39,10 @@ shift_register_init()
     gpio_config_t io_conf;
     io_conf.intr_type = GPIO_INTR_DISABLE;
     io_conf.mode = GPIO_MODE_OUTPUT;
-    io_conf.pin_bit_mask = BIT(DATA_PIN) | BIT(LATCH_PIN) | BIT(CLOCK_PIN);
+    io_conf.pin_bit_mask =
+        BIT(CONFIG_SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_CLOCK) |
+        BIT(CONFIG_SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_LATCH) |
+        BIT(CONFIG_SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_DATA);
     io_conf.pull_down_en = 0;
     io_conf.pull_up_en = 1;
 
@@ -69,35 +67,35 @@ shift_register_set_bit(uint8_t bit, bool value)
 esp_err_t
 shift_register_send()
 {
-    esp_err_t rv = gpio_set_level(DATA_PIN, 0);
+    esp_err_t rv = gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_DATA, 0);
     if (rv != ESP_OK)
         return rv;
 
     for (size_t i = 0; i < 8; i++) {
-        rv = gpio_set_level(DATA_PIN, (data >> i) & 1);
+        rv = gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_DATA, (data >> i) & 1);
         if (rv != ESP_OK)
             return rv;
 
         vTaskDelay(5 / portTICK_PERIOD_MS);
 
-        rv = gpio_set_level(CLOCK_PIN, 1);
+        rv = gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_CLOCK, 1);
         if (rv != ESP_OK)
             return rv;
 
         vTaskDelay(5 / portTICK_PERIOD_MS);
 
-        rv = gpio_set_level(CLOCK_PIN, 0);
+        rv = gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_CLOCK, 0);
         if (rv != ESP_OK)
             return rv;
     }
 
-    rv = gpio_set_level(LATCH_PIN, 1);
+    rv = gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_LATCH, 1);
     if (rv != ESP_OK)
         return rv;
 
     vTaskDelay(5 / portTICK_PERIOD_MS);
 
-    return gpio_set_level(LATCH_PIN, 0);
+    return gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_LATCH, 0);
 }
 
 

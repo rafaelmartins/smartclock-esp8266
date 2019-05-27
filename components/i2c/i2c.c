@@ -6,10 +6,6 @@
  * See the file LICENSE.
  */
 
-// FIXME: get pins from menuconfig
-#define I2C_SCL_PIN 12
-#define I2C_SDA_PIN 14
-
 #include <freertos/FreeRTOS.h>
 #include <esp_err.h>
 
@@ -23,9 +19,9 @@ i2c_init()
 {
     i2c_config_t conf;
     conf.mode = I2C_MODE_MASTER;
-    conf.sda_io_num = I2C_SDA_PIN;
+    conf.sda_io_num = CONFIG_SMARTCLOCK_ESP8266_GPIO_I2C_SDA;
     conf.sda_pullup_en = 1;
-    conf.scl_io_num = I2C_SCL_PIN;
+    conf.scl_io_num = CONFIG_SMARTCLOCK_ESP8266_GPIO_I2C_SCL;
     conf.scl_pullup_en = 1;
 
     esp_err_t rv = i2c_driver_install(I2C_NUM_0, conf.mode);
