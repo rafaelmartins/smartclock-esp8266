@@ -42,9 +42,13 @@ void app_main(void)
     const char *str[] = {"Hello, World!", "bola"};
     int cnt = 0;
     gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_INITIALIZED, 1);
+
+    TickType_t startTime = xTaskGetTickCount();
+
     while (1) {
+        vTaskDelayUntil(&startTime, 1000 / portTICK_RATE_MS);
+
         ESP_LOGI("foo", "cnt: %d", cnt);
-        vTaskDelay(1000 / portTICK_RATE_MS);
 
         size_t width = ssd1306_get_string_width(str[cnt % 2]);
         ssd1306_clear();
