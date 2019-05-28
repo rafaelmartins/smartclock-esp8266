@@ -76,13 +76,13 @@ shift_register_send()
         if (rv != ESP_OK)
             return rv;
 
-        vTaskDelay(5 / portTICK_PERIOD_MS);
+        vTaskDelay(1 / portTICK_PERIOD_MS);
 
         rv = gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_CLOCK, 1);
         if (rv != ESP_OK)
             return rv;
 
-        vTaskDelay(5 / portTICK_PERIOD_MS);
+        vTaskDelay(1 / portTICK_PERIOD_MS);
 
         rv = gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_CLOCK, 0);
         if (rv != ESP_OK)
@@ -93,7 +93,7 @@ shift_register_send()
     if (rv != ESP_OK)
         return rv;
 
-    vTaskDelay(5 / portTICK_PERIOD_MS);
+    vTaskDelay(1 / portTICK_PERIOD_MS);
 
     return gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_LATCH, 0);
 }
