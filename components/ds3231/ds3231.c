@@ -6,12 +6,24 @@
  * See the file LICENSE.
  */
 
+#include <errno.h>
+#include <string.h>
 #include <time.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/event_groups.h>
+#include <freertos/task.h>
+#include <lwip/apps/sntp.h>
 #include <esp_err.h>
+#include <esp_log.h>
 
 #include <i2c/i2c.h>
+#include <wifi/wifi.h>
 
 #include "./ds3231.h"
+
+#define LOG_TAG "ds3231"
+
+static EventGroupHandle_t eg;
 
 
 static uint8_t
@@ -25,6 +37,29 @@ static uint8_t
 bcd_to_dec(uint8_t v)
 {
     return (v / 16) * 10 + v % 16;
+}
+
+
+void
+ds3231_init()
+{
+    eg = xEventGroupCreate();
+
+    setenv("TZ", CONFIG_SMARTCLOCK_ESP8266_TIMEZONE, 1);
+    tzset();
+
+    wifi_wait_for_ip();
+
+    sntp_setoperatingmode(SNTP_OPMODE_POLL);
+    sntp_setservername(0, "pool.ntp.org");
+    sntp_init();
+}
+
+
+void
+ds3231_wait_for_sntp()
+{
+    xEventGroupWaitBits(eg, BIT0, false, true, portMAX_DELAY);
 }
 
 
@@ -47,6 +82,7 @@ esp_err_t
 ds3231_get_time(struct tm *t)
 {
     uint8_t data[7];
+
     esp_err_t rv = ds3231_read(0x00, data, 7);
     if (rv != ESP_OK)
         return rv;
@@ -93,29 +129,57 @@ ds3231_get_time(struct tm *t)
 }
 
 
-esp_err_t
-ds3231_set_time(struct tm *t)
+void
+ds3231_set_time(time_t sec, suseconds_t us)
 {
+    ESP_LOGI(LOG_TAG, "Updating time from SNTP ...");
+
+    struct tm t;
+    if (NULL == localtime_r(&sec, &t)) {
+        ESP_LOGE(LOG_TAG, "Failed to convert SNTP time to localtime: %s",
+            strerror(errno));
+        xEventGroupClearBits(eg, BIT0);
+        return;
+    }
+
+    struct timeval tv = {
+        .tv_sec = sec,
+        .tv_usec = us,
+    };
+
+    if (-1 == settimeofday(&tv, NULL)) {
+        ESP_LOGE(LOG_TAG, "Failed to set system time: %s", strerror(errno));
+        xEventGroupClearBits(eg, BIT0);
+        return;
+    }
+
     uint8_t data[7];
-    data[0] = dec_to_bcd(t->tm_sec);
-    data[1] = dec_to_bcd(t->tm_min);
+    data[0] = dec_to_bcd(t.tm_sec);
+    data[1] = dec_to_bcd(t.tm_min);
 
     // always set on 24h format
-    data[2] = dec_to_bcd(t->tm_hour);
+    data[2] = dec_to_bcd(t.tm_hour);
 
     // ds3231 week day starts from 1 instead of 0
-    data[3] = dec_to_bcd(t->tm_wday + 1);
+    data[3] = dec_to_bcd(t.tm_wday + 1);
 
-    data[4] = dec_to_bcd(t->tm_mday);
+    data[4] = dec_to_bcd(t.tm_mday);
 
     // 5 lsb are the month, starting from 1 instead of 0
-    data[5] = dec_to_bcd(t->tm_mon + 1);
+    data[5] = dec_to_bcd(t.tm_mon + 1);
 
-    data[6] = dec_to_bcd(t->tm_year - 100);
+    data[6] = dec_to_bcd(t.tm_year - 100);
 
     // set bit 7 of byte 5 if year > 2099
-    if (t->tm_year > 2099)
+    if (t.tm_year > 2099)
         data[5] |= 0b10000000;
 
-    return ds3231_write(0x00, data, 7);
+    esp_err_t rv = ds3231_write(0x00, data, 7);
+    if (rv != ESP_OK) {
+        ESP_LOGE(LOG_TAG, "Failed to set system time to DS3231: %s",
+            esp_err_to_name(rv));
+        xEventGroupClearBits(eg, BIT0);
+    }
+
+    xEventGroupSetBits(eg, BIT0);
 }

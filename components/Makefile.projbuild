@@ -1,0 +1,5 @@
+# we add include path here because it must be added before the SDK components
+CFLAGS += \
+	-I$(PROJECT_PATH)/components/ds3231/lwip \
+	-DSNTP_UPDATE_DELAY=$(CONFIG_SMARTCLOCK_ESP8266_SNTP_UPDATE_DELAY) \
+	$(NULL)

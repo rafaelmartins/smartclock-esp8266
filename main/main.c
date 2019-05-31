@@ -47,14 +47,16 @@ void app_main(void)
 
     TickType_t startTime = xTaskGetTickCount();
 
+    ESP_ERROR_CHECK(wifi_init());
+
+    ds3231_init();
+
     struct tm t;
     ESP_ERROR_CHECK(ds3231_get_time(&t));
 
     char foo[1024];
-    strftime(foo, 1024, "%Y-%m-%d %H:%M:%S", &t);
+    strftime(foo, 1024, "%c", &t);
     printf("%s\n", foo);
-
-    ESP_ERROR_CHECK(wifi_init());
 
     while (1) {
         vTaskDelayUntil(&startTime, 1000 / portTICK_RATE_MS);

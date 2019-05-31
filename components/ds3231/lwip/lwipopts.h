@@ -9,10 +9,13 @@
 #pragma once
 
 #include <time.h>
-#include <esp_err.h>
 
-void ds3231_init();
-void ds3231_wait_for_sntp();
-esp_err_t ds3231_write(uint8_t reg, uint8_t *data, size_t len);
-esp_err_t ds3231_read(uint8_t reg, uint8_t *data, size_t len);
-esp_err_t ds3231_get_time(struct tm *t);
+#include_next "lwipopts.h"
+
+void ds3231_set_time(time_t sec, suseconds_t us);
+
+#ifdef SNTP_SET_SYSTEM_TIME_US
+#undef SNTP_SET_SYSTEM_TIME_US
+#endif
+
+#define SNTP_SET_SYSTEM_TIME_US ds3231_set_time
