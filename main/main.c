@@ -16,6 +16,7 @@
 #include <i2c/i2c.h>
 #include <ssd1306/ssd1306.h>
 #include <ssd1306/font.h>
+#include <ds3231/ds3231.h>
 #include <shift-register/shift-register.h>
 
 
@@ -44,6 +45,14 @@ void app_main(void)
     gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_INITIALIZED, 1);
 
     TickType_t startTime = xTaskGetTickCount();
+
+
+    struct tm t;
+    ESP_ERROR_CHECK(ds3231_get_time(&t));
+
+    char foo[1024];
+    strftime(foo, 1024, "%Y-%m-%d %H:%M:%S", &t);
+    printf("%s\n", foo);
 
     while (1) {
         vTaskDelayUntil(&startTime, 1000 / portTICK_RATE_MS);
