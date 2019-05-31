@@ -1,5 +1,11 @@
 menu "smartclock-esp8622 GPIO configuration"
 
+config SMARTCLOCK_ESP8266_WIFI_SSID
+    string "Wifi SSID"
+
+config SMARTCLOCK_ESP8266_WIFI_PASSWORD
+    string "Wifi Password"
+
 config SMARTCLOCK_ESP8266_GPIO_INITIALIZED
     int "GPIO output: Initialized"
     default 5

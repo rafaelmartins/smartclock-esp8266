@@ -1,2 +1,2 @@
 COMPONENT_ADD_INCLUDEDIRS := .
-COMPONENT_SRCDIRS := i2c ds3231 ssd1306 shift-register
+COMPONENT_SRCDIRS := i2c ds3231 ssd1306 shift-register wifi

@@ -18,6 +18,7 @@
 #include <ssd1306/font.h>
 #include <ds3231/ds3231.h>
 #include <shift-register/shift-register.h>
+#include <wifi/wifi.h>
 
 
 void app_main(void)
@@ -46,13 +47,14 @@ void app_main(void)
 
     TickType_t startTime = xTaskGetTickCount();
 
-
     struct tm t;
     ESP_ERROR_CHECK(ds3231_get_time(&t));
 
     char foo[1024];
     strftime(foo, 1024, "%Y-%m-%d %H:%M:%S", &t);
     printf("%s\n", foo);
+
+    ESP_ERROR_CHECK(wifi_init());
 
     while (1) {
         vTaskDelayUntil(&startTime, 1000 / portTICK_RATE_MS);
