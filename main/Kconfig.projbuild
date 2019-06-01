@@ -1,10 +1,16 @@
-menu "smartclock-esp8622 GPIO configuration"
+menu "smartclock-esp8622"
+
+menu "Wifi"
 
 config SMARTCLOCK_ESP8266_WIFI_SSID
     string "Wifi SSID"
 
 config SMARTCLOCK_ESP8266_WIFI_PASSWORD
     string "Wifi Password"
+
+endmenu
+
+menu "SNTP"
 
 config SMARTCLOCK_ESP8266_SNTP_UPDATE_DELAY
     int "SNTP Update Delay"
@@ -14,34 +20,40 @@ config SMARTCLOCK_ESP8266_TIMEZONE
     string "Timezone"
     default "CET-1CEST,M3.5.0,M10.5.0/3"
 
+endmenu
+
+menu "GPIO configuration"
+
 config SMARTCLOCK_ESP8266_GPIO_INITIALIZED
-    int "GPIO output: Initialized"
+    int "Output: Initialized"
     default 5
     range 0 16
 
 config SMARTCLOCK_ESP8266_GPIO_I2C_SDA
-    int "GPIO output: I2C SDA"
+    int "Output: I2C SDA"
     default 0
     range 0 16
 
 config SMARTCLOCK_ESP8266_GPIO_I2C_SCL
-    int "GPIO output: I2C SCL"
+    int "Output: I2C SCL"
     default 4
     range 0 16
 
 config SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_CLOCK
-    int "GPIO output: Shift Register Clock"
+    int "Output: Shift Register Clock"
     default 12
     range 0 16
 
 config SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_LATCH
-    int "GPIO output: Shift Register Latch"
+    int "Output: Shift Register Latch"
     default 13
     range 0 16
 
 config SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_DATA
-    int "GPIO output: Shift Register Data"
+    int "Output: Shift Register Data"
     default 14
     range 0 16
+
+endmenu
 
 endmenu
