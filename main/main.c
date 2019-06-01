@@ -41,9 +41,13 @@ void app_main(void)
         vTaskDelay(1000 / portTICK_RATE_MS);
     }
 
-    const char *str[] = {"Hello, World!", "bola"};
-    int cnt = 0;
     gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_INITIALIZED, 1);
+
+    const char str[] = "Initializing ...";
+    size_t width = ssd1306_get_string_width(str);
+    ssd1306_clear();
+    ssd1306_add_string((128 - width) / 2, (64 - FONT_HEIGHT) / 2, str);
+    ssd1306_render();
 
     TickType_t startTime = xTaskGetTickCount();
 
@@ -52,21 +56,22 @@ void app_main(void)
     ds3231_init();
 
     struct tm t;
-    ESP_ERROR_CHECK(ds3231_get_time(&t));
-
     char foo[1024];
-    strftime(foo, 1024, "%c", &t);
-    printf("%s\n", foo);
+    int cnt = 0;
 
     while (1) {
         vTaskDelayUntil(&startTime, 1000 / portTICK_RATE_MS);
 
-        ESP_LOGI("foo", "cnt: %d", cnt);
+        ds3231_wait_for_sntp();
+        ds3231_get_time(&t);
+        strftime(foo, 1024, "%H:%M:%S", &t);
 
-        size_t width = ssd1306_get_string_width(str[cnt % 2]);
+        size_t width = ssd1306_get_string_width(foo);
         ssd1306_clear();
-        ssd1306_add_string((128 - width) / 2, (64 - FONT_HEIGHT) / 2, str[cnt % 2]);
-        ssd1306_refresh();
+        ssd1306_add_string((128 - width) / 2, (64 - FONT_HEIGHT) / 2, foo);
+        ssd1306_render();
+
+        ESP_LOGI("foo", "cnt: %d", cnt);
 
         shift_register_set_display_number(cnt++ % 10);
         shift_register_set_led(cnt % 2);

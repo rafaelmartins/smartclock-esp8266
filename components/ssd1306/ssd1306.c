@@ -13,6 +13,10 @@
 
 #include <stdbool.h>
 #include <string.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
+#include <freertos/task.h>
+#include <esp_log.h>
 #include <esp_err.h>
 
 #include <i2c/i2c.h>
@@ -47,23 +51,59 @@ static const uint8_t refresh_cmds[] = {
     0xFF,
 };
 
+#define LOG_TAG "ssd1306"
+
 static uint8_t fb[1024] = {0};
+static QueueHandle_t q;
+
+
+static void
+render_task(void *pvParameters)
+{
+    while (1) {
+        bool found = false;
+
+        if (!xQueueReceive(q, &found, portMAX_DELAY) || !found) {
+            vTaskDelay(200 / portTICK_RATE_MS);
+            continue;
+        }
+
+        for (size_t i = 0; refresh_cmds[i] != 0xFF; i++) {
+            esp_err_t rv = ssd1306_command(refresh_cmds[i]);
+            if (rv != ESP_OK)
+                ESP_LOGE(LOG_TAG, "Failed to send refresh command 1 SSD1306: %s",
+                    esp_err_to_name(rv));
+        }
+
+        for (size_t i = 0; i < 1024; i += 16) {
+            esp_err_t rv = i2c_write_data(0x3C, 0x40, &fb[i], 16);
+            if (rv != ESP_OK)
+                ESP_LOGE(LOG_TAG, "Failed to send refresh command 2 SSD1306: %s",
+                    esp_err_to_name(rv));
+        }
+    }
+}
 
 
 esp_err_t
 ssd1306_init()
 {
+    q = xQueueCreate(1, sizeof(bool));
+
     for (size_t i = 0; startup_cmds[i] != 0xFF; i++) {
         esp_err_t rv = ssd1306_command(startup_cmds[i]);
         if (rv != ESP_OK)
             return rv;
     }
 
+    if (pdPASS != xTaskCreate(render_task, "ssd1306_render_task", 512, NULL, 10, NULL))
+        return ESP_FAIL;
+
     esp_err_t rv = ssd1306_clear();
     if (rv != ESP_OK)
         return rv;
 
-    return ssd1306_refresh();
+    return ssd1306_render();
 }
 
 
@@ -75,20 +115,10 @@ ssd1306_command(uint8_t cmd)
 
 
 esp_err_t
-ssd1306_refresh()
+ssd1306_render()
 {
-    for (size_t i = 0; refresh_cmds[i] != 0xFF; i++) {
-        esp_err_t rv = ssd1306_command(refresh_cmds[i]);
-        if (rv != ESP_OK)
-            return rv;
-    }
-
-    for (size_t i = 0; i < 1024; i += 16) {
-        esp_err_t rv = i2c_write_data(0x3C, 0x40, &fb[i], 16);
-        if (rv != ESP_OK)
-            return rv;
-    }
-
+    bool value = true;
+    xQueueSend(q, (void*) &value, (TickType_t) 0);
     return ESP_OK;
 }
 
