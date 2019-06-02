@@ -89,3 +89,16 @@ wifi_wait_for_ip()
 {
     xEventGroupWaitBits(eg, BIT0, false, true, portMAX_DELAY);
 }
+
+
+char*
+wifi_get_ip(char *buf, size_t buf_len)
+{
+    wifi_wait_for_ip();
+
+    tcpip_adapter_ip_info_t info;
+    if (ESP_OK != tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &info))
+        return NULL;
+
+    return ip4addr_ntoa_r(&(info.ip), buf, buf_len);
+}

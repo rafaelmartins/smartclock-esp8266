@@ -12,3 +12,4 @@
 
 esp_err_t wifi_init();
 void wifi_wait_for_ip();
+char* wifi_get_ip(char *buf, size_t buf_len);
