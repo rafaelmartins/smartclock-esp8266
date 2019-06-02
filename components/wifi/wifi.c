@@ -65,16 +65,16 @@ wifi_init()
     if (rv != ESP_OK)
         return rv;
 
+    rv = esp_wifi_set_mode(WIFI_MODE_STA);
+    if (rv != ESP_OK)
+        return rv;
+
     wifi_config_t wifi_config = {
         .sta = {
             .ssid = CONFIG_SMARTCLOCK_ESP8266_WIFI_SSID,
             .password = CONFIG_SMARTCLOCK_ESP8266_WIFI_PASSWORD,
         },
     };
-
-    rv = esp_wifi_set_mode(WIFI_MODE_STA);
-    if (rv != ESP_OK)
-        return rv;
 
     rv = esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config);
     if (rv != ESP_OK)
