@@ -179,6 +179,7 @@ ds3231_set_time(time_t sec, suseconds_t us)
         ESP_LOGE(LOG_TAG, "Failed to set system time to DS3231: %s",
             esp_err_to_name(rv));
         xEventGroupClearBits(eg, BIT0);
+        return;
     }
 
     xEventGroupSetBits(eg, BIT0);
