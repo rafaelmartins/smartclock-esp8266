@@ -33,28 +33,48 @@ void app_main(void)
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
 
+    // shift register must be initialized before powering up the displays
     shift_register_init();
 
+    // gpio and shift register ready, we can power on our stuff :)
+    gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_INITIALIZED, 1);
+
+
+    // hardware initialization
+
     i2c_init();
-    while (ssd1306_init() != 0) {
+
+    while (ESP_OK != ssd1306_init()) {
         printf("%s: failed to init SSD1306 lcd\n", __func__);
         vTaskDelay(1000 / portTICK_RATE_MS);
     }
 
-    gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_INITIALIZED, 1);
-
-    ssd1306_clear();
-    ssd1306_add_string_line(3, "Initializing...", SSD1306_LINE_ALIGN_CENTER, 0);
+    ssd1306_add_string_line(0, "SYSTEM INITIALIZATION", SSD1306_LINE_ALIGN_LEFT, 0);
+    ssd1306_add_string_line(4, "Wifi: Waiting", SSD1306_LINE_ALIGN_LEFT, 0);
+    ssd1306_add_string_line(5, "SNTP: Waiting", SSD1306_LINE_ALIGN_LEFT, 0);
     ssd1306_render();
+
+    // wifi failures are fatal for now :/
+    ESP_ERROR_CHECK(wifi_init());
+
+    // our rtc must be initialized after wifi it will wait for an ip before
+    // querying times to SNTP
+    ds3231_init();
+
+    char ip[16];
+    ssd1306_add_string_line(4, wifi_get_ip(ip, 16), SSD1306_LINE_ALIGN_LEFT, 6);
+    ssd1306_render();
+
+    ds3231_wait_for_sntp();
+    ssd1306_add_string_line(5, "Synchronized", SSD1306_LINE_ALIGN_LEFT, 6);
+    ssd1306_render();
+
+    vTaskDelay(2000 / portTICK_RATE_MS);
 
     TickType_t startTime = xTaskGetTickCount();
 
-    ESP_ERROR_CHECK(wifi_init());
-
-    ds3231_init();
-
     struct tm t;
-    char foo[1024];
+    char timef[9];
     int cnt = 0;
 
     ssd1306_clear();
@@ -65,9 +85,9 @@ void app_main(void)
 
         ds3231_wait_for_sntp();
         ds3231_get_time(&t);
-        strftime(foo, 1024, "%H:%M:%S", &t);
+        strftime(timef, 9, "%H:%M:%S", &t);
 
-        ssd1306_add_string_line(3, foo, SSD1306_LINE_ALIGN_LEFT, 6);
+        ssd1306_add_string_line(3, timef, SSD1306_LINE_ALIGN_LEFT, 6);
         ssd1306_render();
 
         ESP_LOGI("foo", "cnt: %d", cnt);
