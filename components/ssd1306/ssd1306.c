@@ -52,9 +52,14 @@ static const uint8_t refresh_cmds[] = {
 };
 
 #define LOG_TAG "ssd1306"
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define MAX_LINE_CHARS 21
+#define MAX_LINES 8
 
 static uint8_t fb[1024] = {0};
 static QueueHandle_t q;
+static const bool t = true;
 
 
 static void
@@ -99,11 +104,10 @@ ssd1306_init()
     if (pdPASS != xTaskCreate(render_task, "ssd1306_render_task", 512, NULL, 10, NULL))
         return ESP_FAIL;
 
-    esp_err_t rv = ssd1306_clear();
-    if (rv != ESP_OK)
-        return rv;
+    ssd1306_clear();
+    ssd1306_render();
 
-    return ssd1306_render();
+    return ESP_OK;
 }
 
 
@@ -114,32 +118,29 @@ ssd1306_command(uint8_t cmd)
 }
 
 
-esp_err_t
+void
 ssd1306_render()
 {
-    bool value = true;
-    xQueueSend(q, (void*) &value, (TickType_t) 0);
-    return ESP_OK;
+    xQueueSend(q, (void*) &t, (TickType_t) 0);
 }
 
 
-esp_err_t
+void
 ssd1306_clear()
 {
     memset(fb, 0, 1024);
-    return ESP_OK;
 }
 
 
 esp_err_t
 ssd1306_add_pixel(uint8_t x, uint8_t y, bool on)
 {
-    if ((x >= 128) || (y >= 64))
+    if ((x >= SCREEN_WIDTH) || (y >= SCREEN_HEIGHT))
         return ESP_ERR_INVALID_ARG;
 
-    // line_start = line_width * line_number = 128 * (y / 8)
+    // line_start = line_width * line_number = SCREEN_WIDTH * (y / 8)
     // index = line_start + x
-    uint16_t index = (128 * (y / 8)) + x;
+    uint16_t index = (SCREEN_WIDTH * (y / 8)) + x;
 
     // bit_ord = y & 0b111
     // bit_selected = 1 << bit_ord
@@ -181,6 +182,39 @@ ssd1306_add_string(uint8_t x, uint8_t y, const char *string)
     }
 
     return rv;
+}
+
+
+esp_err_t
+ssd1306_add_string_line(uint8_t line, const char *string, ssd1306_line_align_t align,
+    uint8_t offset)
+{
+    // TODO: allow right offset for center text
+
+    size_t slen = strlen(string);
+    size_t len = offset + slen;
+
+    // XXX: change limits if changing the font size
+    if ((line >= MAX_LINES) || (len > MAX_LINE_CHARS))
+        return ESP_ERR_INVALID_ARG;
+
+    uint8_t x = 1;
+    uint8_t y = 1 + (line * (FONT_HEIGHT + 1));
+
+    // the alignment is char based, not pixel based.
+    switch (align) {
+        case SSD1306_LINE_ALIGN_LEFT:
+            x += offset * (FONT_WIDTH + 1);
+            break;
+        case SSD1306_LINE_ALIGN_RIGHT:
+            x += (MAX_LINE_CHARS - slen - offset) * (FONT_WIDTH + 1);
+            break;
+        case SSD1306_LINE_ALIGN_CENTER:
+            x += ((MAX_LINE_CHARS - slen + offset) / 2) * (FONT_WIDTH + 1);
+            break;
+    }
+
+    return ssd1306_add_string(x, y, string);
 }
 
 

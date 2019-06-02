@@ -8,10 +8,18 @@
 
 #pragma once
 
+typedef enum {
+    SSD1306_LINE_ALIGN_LEFT = 0,
+    SSD1306_LINE_ALIGN_RIGHT,
+    SSD1306_LINE_ALIGN_CENTER,
+} ssd1306_line_align_t;
+
 esp_err_t ssd1306_init();
 esp_err_t ssd1306_command(uint8_t cmd);
-esp_err_t ssd1306_render();
-esp_err_t ssd1306_clear();
+void ssd1306_render();
+void ssd1306_clear();
 esp_err_t ssd1306_add_pixel(uint8_t x, uint8_t y, bool on);
 esp_err_t ssd1306_add_string(uint8_t x, uint8_t y, const char *string);
+esp_err_t ssd1306_add_string_line(uint8_t line, const char *string,
+    ssd1306_line_align_t align, uint8_t offset);
 size_t ssd1306_get_string_width(const char *string);
