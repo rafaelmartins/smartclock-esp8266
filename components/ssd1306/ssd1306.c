@@ -65,7 +65,6 @@ render_task(void *pvParameters)
 {
     while (1) {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        printf("bola\n");
 
         for (size_t i = 0; refresh_cmds[i] != 0xFF; i++) {
             esp_err_t rv = ssd1306_command(refresh_cmds[i]);
