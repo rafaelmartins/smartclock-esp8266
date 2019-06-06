@@ -78,7 +78,7 @@ void app_main(void)
     int cnt = 0;
 
     ssd1306_clear();
-    ssd1306_add_string_line(3, "Time:", SSD1306_LINE_ALIGN_LEFT, 0);
+    ssd1306_add_string_line(3, "Time:         ", SSD1306_LINE_ALIGN_CENTER, 0);
 
     while (1) {
         vTaskDelayUntil(&startTime, 1000 / portTICK_RATE_MS);
@@ -87,7 +87,7 @@ void app_main(void)
         ds3231_get_time(&t);
         strftime(timef, 9, "%H:%M:%S", &t);
 
-        ssd1306_add_string_line(3, timef, SSD1306_LINE_ALIGN_LEFT, 6);
+        ssd1306_add_string_line(3, timef, SSD1306_LINE_ALIGN_CENTER, 6);
         ssd1306_render();
 
         ESP_LOGI("foo", "cnt: %d", cnt);
