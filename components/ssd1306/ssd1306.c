@@ -14,7 +14,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include <freertos/FreeRTOS.h>
-#include <freertos/queue.h>
 #include <freertos/task.h>
 #include <esp_log.h>
 #include <esp_err.h>
@@ -58,20 +57,15 @@ static const uint8_t refresh_cmds[] = {
 #define MAX_LINES 8
 
 static uint8_t fb[1024] = {0};
-static QueueHandle_t q;
-static const bool t = true;
+static TaskHandle_t th;
 
 
 static void
 render_task(void *pvParameters)
 {
     while (1) {
-        bool found = false;
-
-        if (!xQueueReceive(q, &found, portMAX_DELAY) || !found) {
-            vTaskDelay(200 / portTICK_RATE_MS);
-            continue;
-        }
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        printf("bola\n");
 
         for (size_t i = 0; refresh_cmds[i] != 0xFF; i++) {
             esp_err_t rv = ssd1306_command(refresh_cmds[i]);
@@ -93,15 +87,13 @@ render_task(void *pvParameters)
 esp_err_t
 ssd1306_init()
 {
-    q = xQueueCreate(1, sizeof(bool));
-
     for (size_t i = 0; startup_cmds[i] != 0xFF; i++) {
         esp_err_t rv = ssd1306_command(startup_cmds[i]);
         if (rv != ESP_OK)
             return rv;
     }
 
-    if (pdPASS != xTaskCreate(render_task, "ssd1306_render_task", 512, NULL, 10, NULL))
+    if (pdPASS != xTaskCreate(render_task, "ssd1306_render_task", 512, NULL, 10, &th))
         return ESP_FAIL;
 
     ssd1306_clear();
@@ -121,7 +113,7 @@ ssd1306_command(uint8_t cmd)
 void
 ssd1306_render()
 {
-    xQueueSend(q, (void*) &t, (TickType_t) 0);
+    xTaskNotifyGive(th);
 }
 
 
