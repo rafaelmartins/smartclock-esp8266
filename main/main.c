@@ -13,6 +13,7 @@
 #include <esp_log.h>
 #include <esp_system.h>
 
+#include <button/button.h>
 #include <i2c/i2c.h>
 #include <ssd1306/ssd1306.h>
 #include <ssd1306/font.h>
@@ -32,6 +33,8 @@ void app_main(void)
     io_conf.pull_down_en = 0;
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
+
+    ESP_ERROR_CHECK(button_init());
 
     // gpio ready, we can power on our stuff :)
     gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_INITIALIZED, 1);

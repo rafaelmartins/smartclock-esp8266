@@ -24,6 +24,11 @@ endmenu
 
 menu "GPIO configuration"
 
+config SMARTCLOCK_ESP8266_GPIO_BUTTON
+    int "Input: Button"
+    default 2
+    range 0 16
+
 config SMARTCLOCK_ESP8266_GPIO_INITIALIZED
     int "Output: Initialized"
     default 5
