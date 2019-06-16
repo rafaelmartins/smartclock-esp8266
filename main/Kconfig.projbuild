@@ -39,21 +39,6 @@ config SMARTCLOCK_ESP8266_GPIO_I2C_SCL
     default 4
     range 0 16
 
-config SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_CLOCK
-    int "Output: Shift Register Clock"
-    default 12
-    range 0 16
-
-config SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_LATCH
-    int "Output: Shift Register Latch"
-    default 13
-    range 0 16
-
-config SMARTCLOCK_ESP8266_GPIO_SHIFT_REGISTER_DATA
-    int "Output: Shift Register Data"
-    default 14
-    range 0 16
-
 endmenu
 
 endmenu

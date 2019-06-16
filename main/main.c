@@ -17,7 +17,7 @@
 #include <ssd1306/ssd1306.h>
 #include <ssd1306/font.h>
 #include <ds3231/ds3231.h>
-#include <shift-register/shift-register.h>
+#include <mcp23017/mcp23017.h>
 #include <wifi/wifi.h>
 
 
@@ -33,21 +33,16 @@ void app_main(void)
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
 
-    // shift register must be initialized before powering up the displays
-    shift_register_init();
-
-    // gpio and shift register ready, we can power on our stuff :)
+    // gpio ready, we can power on our stuff :)
     gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_INITIALIZED, 1);
 
 
     // hardware initialization
 
-    i2c_init();
-
-    while (ESP_OK != ssd1306_init()) {
-        printf("%s: failed to init SSD1306 lcd\n", __func__);
-        vTaskDelay(1000 / portTICK_RATE_MS);
-    }
+    // i2c device failure is fatal for now :/
+    ESP_ERROR_CHECK(i2c_init());
+    ESP_ERROR_CHECK(mcp23017_init());
+    ESP_ERROR_CHECK(ssd1306_init());
 
     ssd1306_add_string_line(0, "SYSTEM INITIALIZATION", SSD1306_LINE_ALIGN_LEFT, 0);
     ssd1306_add_string_line(4, "Wifi: Waiting", SSD1306_LINE_ALIGN_LEFT, 0);
@@ -57,7 +52,7 @@ void app_main(void)
     // wifi failures are fatal for now :/
     ESP_ERROR_CHECK(wifi_init());
 
-    // our rtc must be initialized after wifi it will wait for an ip before
+    // our rtc must be initialized after wifi. it will wait for an ip before
     // querying times to SNTP
     ds3231_init();
 
@@ -92,9 +87,9 @@ void app_main(void)
 
         ESP_LOGI("foo", "cnt: %d", cnt);
 
-        shift_register_set_display_number(cnt++ % 10);
-        shift_register_set_led(cnt % 2);
-        shift_register_send();
+        mcp23017_set_display_number(cnt++ % 10);
+        mcp23017_set_led(cnt % 2);
+        mcp23017_send();
     }
 
     i2c_cleanup();

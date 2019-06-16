@@ -11,8 +11,8 @@
 #include <stdbool.h>
 #include <esp_err.h>
 
-esp_err_t shift_register_init();
-void shift_register_set_bit(uint8_t bit, bool value);
-esp_err_t shift_register_send();
-void shift_register_set_display_number(uint8_t num);
-void shift_register_set_led(bool on);
+esp_err_t mcp23017_init();
+void mcp23017_set_bit(uint8_t bit, bool value);
+esp_err_t mcp23017_send();
+void mcp23017_set_display_number(uint8_t num);
+void mcp23017_set_led(bool on);
