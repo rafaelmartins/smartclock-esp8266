@@ -29,11 +29,6 @@ config SMARTCLOCK_ESP8266_GPIO_BUTTON
     default 2
     range 0 16
 
-config SMARTCLOCK_ESP8266_GPIO_INITIALIZED
-    int "Output: Initialized"
-    default 5
-    range 0 16
-
 config SMARTCLOCK_ESP8266_GPIO_I2C_SDA
     int "Output: I2C SDA"
     default 0

@@ -59,5 +59,6 @@ button_init()
     if (pdPASS != xTaskCreate(button_task, "button_task", 1024, NULL, 10, &th))
         return ESP_FAIL;
 
-    return gpio_isr_handler_add(2, button_handler, NULL);
+    return gpio_isr_handler_add(CONFIG_SMARTCLOCK_ESP8266_GPIO_BUTTON,
+        button_handler, NULL);
 }

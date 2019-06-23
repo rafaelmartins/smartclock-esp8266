@@ -26,23 +26,9 @@ void app_main(void)
 {
     printf("SDK version: %s\n", esp_get_idf_version());
 
-    gpio_config_t io_conf;
-    io_conf.intr_type = GPIO_INTR_DISABLE;
-    io_conf.mode = GPIO_MODE_OUTPUT;
-    io_conf.pin_bit_mask = BIT(CONFIG_SMARTCLOCK_ESP8266_GPIO_INITIALIZED);
-    io_conf.pull_down_en = 0;
-    io_conf.pull_up_en = 0;
-    gpio_config(&io_conf);
-
-    ESP_ERROR_CHECK(button_init());
-
-    // gpio ready, we can power on our stuff :)
-    gpio_set_level(CONFIG_SMARTCLOCK_ESP8266_GPIO_INITIALIZED, 1);
-
-
     // hardware initialization
 
-    // i2c device failure is fatal for now :/
+    ESP_ERROR_CHECK(button_init());
     ESP_ERROR_CHECK(i2c_init());
     ESP_ERROR_CHECK(mcp23017_init());
     ESP_ERROR_CHECK(ssd1306_init());
