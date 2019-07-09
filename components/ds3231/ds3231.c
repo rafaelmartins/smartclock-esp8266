@@ -119,7 +119,7 @@ ds3231_get_time(struct tm *t)
 
     // bit 7 up means year > 2099 && < 2200 (this is the year limit of ds3231)
     if (data[5] & 0b10000000)
-        t->tm_year = 100;
+        t->tm_year += 100;
 
     t->tm_year += bcd_to_dec(data[6]);
 
