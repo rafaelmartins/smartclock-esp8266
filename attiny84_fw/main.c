@@ -76,10 +76,9 @@ main(void)
     DDRB |= display_pins[8][1] | (1 << 0) | (1 << 1);
 
     i2c_device_init(0x20);
-    i2c_device_add_handler(set_display);
-    i2c_device_add_handler(set_led);
-    i2c_device_add_handler(set_led);
-
+    i2c_device_add_register(set_display);
+    i2c_device_add_register(set_led);
+    i2c_device_add_register(set_led);
     i2c_device_set_register(0x00, 0xf);
 
     sei();
