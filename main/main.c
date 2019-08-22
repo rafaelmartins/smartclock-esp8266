@@ -18,7 +18,7 @@
 #include <ssd1306/ssd1306.h>
 #include <ssd1306/font.h>
 #include <ds3231/ds3231.h>
-#include <mcp23017/mcp23017.h>
+#include <attiny24/attiny24.h>
 #include <wifi/wifi.h>
 
 
@@ -30,7 +30,7 @@ void app_main(void)
 
     ESP_ERROR_CHECK(button_init());
     ESP_ERROR_CHECK(i2c_init());
-    ESP_ERROR_CHECK(mcp23017_init());
+    ESP_ERROR_CHECK(attiny24_init());
     ESP_ERROR_CHECK(ssd1306_init());
 
     ssd1306_add_string_line(0, "SYSTEM INITIALIZATION", SSD1306_LINE_ALIGN_LEFT, 0);
@@ -75,10 +75,9 @@ void app_main(void)
         ssd1306_render();
 
         ESP_LOGI("foo", "cnt: %d", cnt);
-
-        mcp23017_set_display_number(cnt++ % 10);
-        mcp23017_set_led(cnt % 2);
-        mcp23017_send();
+        attiny24_set_display(cnt++ % 10);
+        attiny24_set_led1((cnt % 2) == 0);
+        attiny24_set_led2((cnt % 2) != 0);
     }
 
     i2c_cleanup();
