@@ -1,8 +1,8 @@
-# attiny84\_fw
+# attiny24\_fw
 
-This is a simple firmware for Attiny84, that controls a 7 segment display with numeric values (0-9) and 2 leds.
+This is a simple firmware for Attiny24, that controls a 7 segment display with numeric values (0-9) and 2 leds.
 
-The pinout of the Attiny84 and 7 segment display (common cathode) are displayed below:
+The pinout of the Attiny24 and 7 segment display (common cathode) are displayed below:
 
                                                        G F 0 A B
                      +------+                          | | | | |
