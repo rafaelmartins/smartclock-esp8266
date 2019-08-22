@@ -15,7 +15,6 @@ typedef enum {
 } ssd1306_line_align_t;
 
 esp_err_t ssd1306_init();
-esp_err_t ssd1306_command(uint8_t cmd);
 void ssd1306_render();
 void ssd1306_clear();
 esp_err_t ssd1306_add_pixel(uint8_t x, uint8_t y, bool on);

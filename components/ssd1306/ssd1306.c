@@ -23,7 +23,7 @@
 #include "./font.h"
 #include "./ssd1306.h"
 
-static const uint8_t startup_cmds[] = {
+static uint8_t startup_cmds[26] = {
     0xAE,        // display off (page 28, 37)
     0xA8, 0x3F,  // set multiplex ratio (page 31, 37, app: page 5)
     0xD3, 0x00,  // set display offset (page 31, 37, app: page 5)
@@ -41,13 +41,11 @@ static const uint8_t startup_cmds[] = {
     0xDB, 0x40,  // set Vcomh deselect level (page 32, 43)
     0x2E,        // deactivate scroll (page 29, 46)
     0xAF,        // display on (page 28, 37, app: page 5)
-    0xFF,
 };
 
-static const uint8_t refresh_cmds[] = {
+static uint8_t refresh_cmds[6] = {
     0x21, 0x00, 0x7F,  // set column address (page 30, 35)
     0x22, 0x00, 0x07,  // set page address (page 31, 36)
-    0xFF,
 };
 
 #define LOG_TAG "ssd1306"
@@ -66,19 +64,14 @@ render_task(void *pvParameters)
     while (1) {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-        for (size_t i = 0; refresh_cmds[i] != 0xFF; i++) {
-            esp_err_t rv = ssd1306_command(refresh_cmds[i]);
-            if (rv != ESP_OK)
-                ESP_LOGE(LOG_TAG, "Failed to send refresh command 1 SSD1306: %s",
-                    esp_err_to_name(rv));
-        }
+        esp_err_t rv = i2c_write_data(0x3C, 0, refresh_cmds, 6);
+        if (rv != ESP_OK)
+            ESP_LOGE(LOG_TAG, "Failed to send refresh commands: %s",
+                esp_err_to_name(rv));
 
-        for (size_t i = 0; i < 1024; i += 16) {
-            esp_err_t rv = i2c_write_data(0x3C, 0x40, &fb[i], 16);
-            if (rv != ESP_OK)
-                ESP_LOGE(LOG_TAG, "Failed to send refresh command 2 SSD1306: %s",
-                    esp_err_to_name(rv));
-        }
+        rv = i2c_write_data(0x3C, 0x40, fb, 1024);
+        if (rv != ESP_OK)
+             ESP_LOGE(LOG_TAG, "Failed to set GDDRAM: %s", esp_err_to_name(rv));
     }
 }
 
@@ -86,26 +79,20 @@ render_task(void *pvParameters)
 esp_err_t
 ssd1306_init()
 {
-    for (size_t i = 0; startup_cmds[i] != 0xFF; i++) {
-        esp_err_t rv = ssd1306_command(startup_cmds[i]);
-        if (rv != ESP_OK)
-            return rv;
+    esp_err_t rv = i2c_write_data(0x3C, 0, startup_cmds, 26);
+    if (rv != ESP_OK) {
+        ESP_LOGE(LOG_TAG, "Failed to send startup commands: %s",
+            esp_err_to_name(rv));
+        return rv;
     }
 
-    if (pdPASS != xTaskCreate(render_task, "ssd1306_render_task", 512, NULL, 10, &th))
+    if (pdPASS != xTaskCreate(render_task, "ssd1306_render_task", 1024, NULL, 10, &th))
         return ESP_FAIL;
 
     ssd1306_clear();
     ssd1306_render();
 
     return ESP_OK;
-}
-
-
-esp_err_t
-ssd1306_command(uint8_t cmd)
-{
-    return i2c_write_data(0x3C, 0, &cmd, 1);
 }
 
 
