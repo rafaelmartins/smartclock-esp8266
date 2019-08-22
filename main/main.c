@@ -71,10 +71,11 @@ void app_main(void)
         ds3231_get_time(&t);
         strftime(timef, 9, "%H:%M:%S", &t);
 
+        ESP_LOGI("foo", "cnt: %d", cnt);
+
         ssd1306_add_string_line(3, timef, SSD1306_LINE_ALIGN_CENTER, 6);
         ssd1306_render();
 
-        ESP_LOGI("foo", "cnt: %d", cnt);
         attiny24_set_display(cnt++ % 10);
         attiny24_set_led1((cnt % 2) == 0);
         attiny24_set_led2((cnt % 2) != 0);

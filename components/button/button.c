@@ -20,7 +20,7 @@ static TaskHandle_t th;
 #define LOG_TAG "button"
 
 
-static void
+static void IRAM_ATTR
 button_handler(void *arg)
 {
     vTaskNotifyGiveFromISR(th, NULL);
@@ -45,7 +45,7 @@ button_init()
     io_conf.intr_type = GPIO_INTR_NEGEDGE;
     io_conf.pin_bit_mask = BIT(CONFIG_SMARTCLOCK_ESP8266_GPIO_BUTTON);
     io_conf.mode = GPIO_MODE_INPUT;
-    io_conf.pull_up_en = 1;
+    io_conf.pull_up_en = 0;
     io_conf.pull_down_en = 0;
 
     esp_err_t rv = gpio_config(&io_conf);
