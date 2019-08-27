@@ -44,7 +44,7 @@ set_display(uint8_t reg, uint8_t v)
 {
     (void) reg;
 
-    v &= 0xf;
+    v &= 0b1111;
 
     if (v > 9 && v != 0xf)
         return;
@@ -65,7 +65,8 @@ set_led(uint8_t reg, uint8_t v)
 {
     // leds are PB0 and PB1
     // registers are 0x1 and 0x2
-    PORTB ^= (-(bool) v ^ PORTB) & (1 << ((reg & 2) - 1));
+    reg &= 0b11;
+    PORTB ^= (-(bool) v ^ PORTB) & reg;
 }
 
 
