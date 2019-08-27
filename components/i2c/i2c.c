@@ -9,8 +9,8 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 #include <esp_err.h>
+#include <driver/i2c.h>
 
-#include "./i2c_driver.h"
 #include "./i2c.h"
 
 static SemaphoreHandle_t _mutex = NULL;
