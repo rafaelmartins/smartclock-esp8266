@@ -1,7 +1,7 @@
 # programmer and mcu settings
 AVRDUDE_PROGRAMMER ?= avrispmkII
 AVRDUDE_PORT ?= usb
-AVR_MCU ?= attiny24
+AVR_MCU ?= attiny24a
 AVR_CPU_FREQUENCY ?= 8000000UL
 
 AVRDUDE = avrdude
